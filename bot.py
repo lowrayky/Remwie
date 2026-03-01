@@ -10,7 +10,7 @@ import os
 import pytz
 from dotenv import load_dotenv
 
-TOKEN = os.getenv("8345831233:AAGRb6TIC8Ve3oR1oXksALQEXfjtgVSbQek")
+TOKEN = os.getenv("TOKEN")
 
 load_dotenv()
 
