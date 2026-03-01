@@ -132,17 +132,12 @@ async def list_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📭 Список пуст. Добавь что-нибудь через /add")
         return
 
-    lines = ["📋 *Все записи:*\n"]
+    lines = ["📋 Все записи:\n"]
     for i, (item_id, content, stage, next_date) in enumerate(rows, start=1):
-        interval_info = f"интервал {stage+1}/{len(INTERVALS)}, следующее: {next_date}"
-        # Обрезаем длинный текст для читаемости
         short = content if len(content) <= 80 else content[:77] + "..."
-        lines.append(f"{i}\\) `[{item_id}]` {short}\n    _{interval_info}_")
+        lines.append(f"{i}) [ID:{item_id}] {short}\n    Интервал {stage+1}/{len(INTERVALS)}, следующее: {next_date}")
 
-    await update.message.reply_text(
-        "\n".join(lines),
-        parse_mode="MarkdownV2"
-    )
+    await update.message.reply_text("\n".join(lines))
 
 
 async def delete_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
