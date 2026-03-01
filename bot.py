@@ -5,10 +5,14 @@ from telegram.ext import (
 )
 import sqlite3
 from datetime import datetime, timedelta
+
 import os
 import pytz
+from dotenv import load_dotenv
 
 TOKEN = os.getenv("8345831233:AAGRb6TIC8Ve3oR1oXksALQEXfjtgVSbQek")
+
+load_dotenv()
 
 INTERVALS = [1, 3, 7, 14, 30]
 MSK = pytz.timezone("Europe/Moscow")
