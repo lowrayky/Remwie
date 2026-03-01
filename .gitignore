@@ -1,0 +1,4 @@
+items.db
+__pycache__/
+.env
+*.pyc
