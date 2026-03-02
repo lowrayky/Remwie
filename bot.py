@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     ApplicationBuilder, CommandHandler,
-    CallbackQueryHandler, ContextTypes
+    CallbackQueryHandler, ContextTypes, MessageHandler, filters
 )
 import sqlite3
 from datetime import datetime, timedelta
@@ -90,6 +90,24 @@ async def add_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def save_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    photo = update.message.photo[-1]  # берём лучшее качество
+    file_id = photo.file_id
+    caption = update.message.caption or ""  # подпись к фото если есть
+
+    content = f"[PHOTO:{file_id}]"
+    if caption:
+        content += f"\n{caption}"
+
+    cursor.execute(
+        "INSERT INTO items (content, stage, next_date, created_at, shown_today) VALUES (?, ?, ?, ?, ?)",
+        (content, 0, calc_next_date(0), now_msk().strftime("%Y-%m-%d %H:%M:%S"), 0)
+    )
+    conn.commit()
+
+    await update.message.reply_text("✅ Фото сохранено для повторения.\nПервое повторение — завтра.")
+
+
 async def today_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     today_str = today_msk()
 
@@ -121,7 +139,14 @@ async def today_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 InlineKeyboardButton("❌ Не помню", callback_data=f"forgot_{item_id}")
             ]
         ])
-        await update.message.reply_text(content, reply_markup=keyboard)
+
+        if content.startswith("[PHOTO:"):
+            lines = content.split("\n", 1)
+            file_id = lines[0].replace("[PHOTO:", "").replace("]", "")
+            caption = lines[1] if len(lines) > 1 else ""
+            await update.message.reply_photo(file_id, caption=caption, reply_markup=keyboard)
+        else:
+            await update.message.reply_text(content, reply_markup=keyboard)
 
 
 async def list_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -226,5 +251,7 @@ app.job_queue.run_daily(
     reset_shown_today,
     time=datetime.strptime("00:00", "%H:%M").replace(tzinfo=MSK).timetz()
 )
+
+app.add_handler(MessageHandler(filters.PHOTO, save_photo))
 
 app.run_polling()
